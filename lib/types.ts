@@ -1,7 +1,9 @@
-// Wallet Types
+// Core Types
 export interface Wallet {
   publicKey: string;
-  privateKey?: string; // Only in memory, never stored directly
+  privateKey?: string;
+  bitcoinAddress?: string; // Taproot address
+  xOnlyPubKey?: string; // For Taproot
 }
 
 export interface Balance {
@@ -14,19 +16,53 @@ export interface Balance {
 
 export interface Transaction {
   id: string;
-  type: 'sent' | 'received' | 'swapped';
+  type: 'sent' | 'received' | 'swapped' | 'deposit' | 'withdraw';
   token: string;
   amount: number;
   date: Date;
   address: string;
-  status: 'pending' | 'completed' | 'failed';
+  status: InteractionStatus;
+  steps?: TransactionStep[];
 }
 
-export interface Contact {
-  id: string;
-  name: string;
-  address: string;
-  avatar: string;
+// Zeus Protocol Types
+export enum InteractionStatus {
+  BitcoinDepositToHotReserve = 'BitcoinDepositToHotReserve',
+  VerifyDepositToHotReserveTransaction = 'VerifyDepositToHotReserveTransaction',
+  SolanaDepositToHotReserve = 'SolanaDepositToHotReserve',
+  AddLockToColdReserveProposal = 'AddLockToColdReserveProposal',
+  BitcoinLockToColdReserve = 'BitcoinLockToColdReserve',
+  VerifyLockToColdReserveTransaction = 'VerifyLockToColdReserveTransaction',
+  SolanaLockToColdReserve = 'SolanaLockToColdReserve',
+  Peg = 'Peg',
+  AddWithdrawalRequest = 'AddWithdrawalRequest',
+  AddUnlockToUserProposal = 'AddUnlockToUserProposal',
+  BitcoinUnlockToUser = 'BitcoinUnlockToUser',
+  VerifyUnlockToUserTransaction = 'VerifyUnlockToUserTransaction',
+  SolanaUnlockToUser = 'SolanaUnlockToUser',
+  Unpeg = 'Unpeg',
+  DeprecateWithdrawalRequest = 'DeprecateWithdrawalRequest'
+}
+
+export interface TransactionStep {
+  transaction: string;
+  chain: 'Bitcoin' | 'Solana';
+  action: string;
+  timestamp: number;
+}
+
+export interface HotReserveBucket {
+  owner: string;
+  taprootXOnlyPublicKey: string;
+  scriptPathSpendPublicKey: string;
+  guardianSetting: string;
+  status: 'active' | 'expired' | 'deactivated';
+}
+
+export interface Position {
+  storedAmount: BN;
+  frozenAmount: BN;
+  guardianSetting: string;
 }
 
 export interface SwapQuote {
